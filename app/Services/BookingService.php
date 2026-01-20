@@ -81,47 +81,52 @@ class BookingService
         $this->validateStateTransition($booking, BookingState::HOLD);
 
         return DB::transaction(function () use ($booking, $holdDurationMinutes) {
-            // Check inventory availability
-            foreach ($booking->items as $item) {
-                if (!$this->inventoryService->checkAvailability(
-                    $item->ticket_id,
-                    $item->visit_date,
-                    $item->quantity
-                )) {
-                    throw new InvalidArgumentException(
-                        "Insufficient inventory for {$item->ticket_name} on {$item->visit_date}"
+            // Use Atomic Lock to prevent race conditions during high load
+            // Lock waits up to 10 seconds, and holds for 10 seconds
+            return \Illuminate\Support\Facades\Cache::lock('inventory_reservation', 10)->block(10, function () use ($booking, $holdDurationMinutes) {
+                
+                // 1. Re-Check inventory availability (inside lock)
+                foreach ($booking->items as $item) {
+                    if (!$this->inventoryService->checkAvailability(
+                        $item->ticket_id,
+                        $item->visit_date,
+                        $item->quantity
+                    )) {
+                        throw new InvalidArgumentException(
+                            "Insufficient inventory for {$item->ticket_name} on {$item->visit_date->format('Y-m-d')}."
+                        );
+                    }
+                }
+
+                // 2. Create holds
+                $expiresAt = now()->addMinutes($holdDurationMinutes);
+                foreach ($booking->items as $item) {
+                    $this->inventoryService->createHold(
+                        $booking,
+                        $item->ticket_id,
+                        $item->visit_date,
+                        $item->quantity,
+                        $expiresAt
                     );
                 }
-            }
 
-            // Create holds
-            $expiresAt = now()->addMinutes($holdDurationMinutes);
-            foreach ($booking->items as $item) {
-                $this->inventoryService->createHold(
+                // 3. Update booking state
+                $booking->update([
+                    'state' => BookingState::HOLD,
+                    'state_changed_at' => now(),
+                    'hold_expires_at' => $expiresAt,
+                ]);
+
+                AuditLog::log(
                     $booking,
-                    $item->ticket_id,
-                    $item->visit_date,
-                    $item->quantity,
-                    $expiresAt
+                    'state_changed',
+                    "Booking state changed to HOLD (expires at {$expiresAt})",
+                    BookingState::DRAFT->value,
+                    BookingState::HOLD->value
                 );
-            }
 
-            // Update booking state
-            $booking->update([
-                'state' => BookingState::HOLD,
-                'state_changed_at' => now(),
-                'hold_expires_at' => $expiresAt,
-            ]);
-
-            AuditLog::log(
-                $booking,
-                'state_changed',
-                "Booking state changed to HOLD (expires at {$expiresAt})",
-                BookingState::DRAFT->value,
-                BookingState::HOLD->value
-            );
-
-            return $booking->fresh();
+                return $booking->fresh();
+            });
         });
     }
 

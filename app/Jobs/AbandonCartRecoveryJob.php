@@ -25,7 +25,8 @@ class AbandonCartRecoveryJob implements ShouldQueue
 
         foreach ($leads as $lead) {
             // Send Recovery Email
-            // \Mail::to($lead->email)->send(new \App\Mail\CompleteYourBooking($lead));
+            // Send Recovery Email
+            \Illuminate\Support\Facades\Mail::to($lead->email)->send(new \App\Mail\CompleteYourBooking($lead));
             
             // Mark as contacted/abandoned
             $lead->update(['status' => 'abandoned']);

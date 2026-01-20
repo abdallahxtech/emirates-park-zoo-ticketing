@@ -152,6 +152,24 @@ class BookingResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('refund')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('danger')
+                    ->action(function (Booking $record) {
+                        $paymentService = app(\App\Services\PaymentService::class);
+                        if ($payment = $record->payments->first()) {
+                            try {
+                                $paymentService->refundPayment($payment, $record->total, 'Admin Refund');
+                                \Filament\Notifications\Notification::make()->title('Refund Processed')->success()->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()->title('Refund Failed: ' . $e->getMessage())->danger()->send();
+                            }
+                        } else {
+                            \Filament\Notifications\Notification::make()->title('No payment found to refund')->warning()->send();
+                        }
+                    })
+                    ->visible(fn (Booking $record) => in_array($record->state, [BookingState::CONFIRMED, BookingState::ISSUED])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
