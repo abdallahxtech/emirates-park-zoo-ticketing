@@ -96,3 +96,4 @@ class Booking extends Model
     {
         return $this->hasMany(InventoryHold::class);
     }
+}
