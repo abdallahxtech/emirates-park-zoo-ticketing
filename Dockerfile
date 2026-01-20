@@ -40,4 +40,4 @@ RUN chown -R www-data:www-data /var/www \
 
 # Expose port 80
 EXPOSE 80
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
+CMD sh -c "php artisan optimize:clear && php artisan migrate --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=80"
