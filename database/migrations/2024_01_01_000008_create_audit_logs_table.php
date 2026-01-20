@@ -33,7 +33,7 @@ return new class extends Migration
             
             $table->timestamp('created_at'); // Immutable, no updated_at
 
-            $table->index(['auditable_type', 'auditable_id']);
+
             $table->index('event');
             $table->index('user_id');
             $table->index('created_at');
