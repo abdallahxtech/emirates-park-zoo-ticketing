@@ -17,7 +17,12 @@ Route::post('/webhooks/cybersource', [\App\Http\Controllers\PaymentWebhookContro
 
 // Debug Routes
 Route::get('/health', function () {
-    return 'OK: ' . now();
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        return response()->json(['status' => 'ok', 'database' => 'connected', 'timestamp' => now()], 200);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'error', 'database' => $e->getMessage(), 'timestamp' => now()], 500);
+    }
 });
 
 Route::get('/debug-env', function () {
@@ -29,4 +34,13 @@ Route::get('/debug-env', function () {
         'storage_writable' => is_writable(storage_path()),
         'log_writable' => is_writable(storage_path('logs')),
     ];
+});
+
+Route::get('/fix-admin', function () {
+    try {
+        Illuminate\Support\Facades\Artisan::call('fix:admin');
+        return nl2br(Illuminate\Support\Facades\Artisan::output());
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
