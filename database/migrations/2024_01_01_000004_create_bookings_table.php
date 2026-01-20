@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             
             // State tracking
-            $table->addColumn('booking_state', 'state')->default('DRAFT');
+            $table->string('state')->default('DRAFT');
             $table->timestamp('state_changed_at')->nullable();
             
             // Pricing
