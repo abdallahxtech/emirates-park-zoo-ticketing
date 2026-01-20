@@ -44,3 +44,16 @@ Route::get('/fix-admin', function () {
         return "Error: " . $e->getMessage();
     }
 });
+
+Route::get('/clear-cache', function () {
+    try {
+        Illuminate\Support\Facades\Artisan::call('config:clear');
+        Illuminate\Support\Facades\Artisan::call('cache:clear');
+        Illuminate\Support\Facades\Artisan::call('view:clear');
+        Illuminate\Support\Facades\Artisan::call('route:clear');
+        Illuminate\Support\Facades\Artisan::call('filament:assets');
+        return "All caches cleared and assets published! Refresh Admin Panel.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});

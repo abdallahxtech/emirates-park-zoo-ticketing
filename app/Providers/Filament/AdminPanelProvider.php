@@ -34,7 +34,9 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
                 'success' => Color::Emerald,
             ])
-            ->brandName('Emirates Park Zoo & Resort')
+            ->brandName('Emirates Park Zoo')
+            ->brandLogoHeight('3rem')
+            ->favicon(asset('favicon.ico'))
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
