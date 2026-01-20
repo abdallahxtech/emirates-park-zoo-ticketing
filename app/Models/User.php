@@ -101,9 +101,17 @@ class User extends Authenticatable implements FilamentUser
     /**
      * Helper to check role slug
      */
-    public function hasRole(string $slug): bool
+    public function hasRole(string|array $slugs): bool
     {
-        return $this->role && $this->role->slug === $slug;
+        if (!$this->role) {
+            return false;
+        }
+
+        if (is_array($slugs)) {
+            return in_array($this->role->slug, $slugs);
+        }
+
+        return $this->role->slug === $slugs;
     }
 
     /**
