@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SystemSettingResource\Pages;
 
 use App\Filament\Resources\SystemSettingResource;
+use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
 class ListSystemSettings extends ListRecords
@@ -12,7 +13,7 @@ class ListSystemSettings extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // Actions\CreateAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }

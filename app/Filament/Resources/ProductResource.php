@@ -29,6 +29,10 @@ class ProductResource extends Resource
                             ->maxLength(255),
                         Forms\Components\Textarea::make('description')
                             ->columnSpanFull(),
+                        Forms\Components\FileUpload::make('featured_image')
+                            ->image()
+                            ->directory('products')
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('base_price')
                             ->required()
                             ->numeric()
@@ -51,10 +55,10 @@ class ProductResource extends Resource
                             ->live(),
                         Forms\Components\TextInput::make('capacity_per_day')
                             ->numeric()
-                            ->visible(fn (Forms\Get $get) => $get('has_capacity')),
+                            ->visible(fn(Forms\Get $get) => $get('has_capacity')),
                         Forms\Components\Toggle::make('is_time_slotted')
                             ->label('Has Time Slots'),
-                        
+
                         Forms\Components\KeyValue::make('options_config')
                             ->label('VIP Options Configuration')
                             ->helperText('Define available food types or other options. Key=food_types, Value=International, Arabic, etc.')
@@ -75,6 +79,7 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                Tables\Columns\ImageColumn::make('featured_image'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('base_price')
