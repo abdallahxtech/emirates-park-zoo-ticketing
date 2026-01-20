@@ -17,10 +17,12 @@ class BookingItem extends Model
         'quantity',
         'unit_price',
         'subtotal',
-        'time_slot',
-        'food_preference',
+        'visit_date',
+        'visit_time',
+        'time_slot', // Keep both for now or alias
+        'food_selection',
         'dietary_notes',
-        'guest_names',
+        'galaxy_ticket_ids',
         'metadata',
     ];
 
