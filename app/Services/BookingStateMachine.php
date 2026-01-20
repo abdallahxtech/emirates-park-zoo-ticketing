@@ -62,11 +62,17 @@ class BookingStateMachine
         // Dispatch job to generate tickets and send email
         IssueTicketsJob::dispatch($booking);
 
-        // 2. Send WhatsApp Notification
+        // 2. Send Notifications (WhatsApp + SMS)
         try {
+            // WhatsApp (Rich Media)
             app(\App\Services\WhatsAppService::class)->sendConfirmation($booking);
+            
+            // SMS Backup (TextLocal)
+            // "Can we do text local for now" -> Integrated here
+            app(\App\Services\TextLocalService::class)->sendBookingConfirmation($booking);
+            
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("WhatsApp notification failed: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("Notification failed: " . $e->getMessage());
         }
 
         // 3. Internal Notifications
