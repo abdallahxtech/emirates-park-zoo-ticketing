@@ -30,6 +30,7 @@ COPY . /var/www
 
 # Install dependencies
 RUN echo "Cache Bust 1" 
+RUN rm -rf /var/www/bootstrap/cache/*.php
 RUN composer update --no-dev --optimize-autoloader
 
 # Set permissions
