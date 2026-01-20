@@ -10,6 +10,16 @@ class ListSystemSettings extends ListRecords
 {
     protected static string $resource = SystemSettingResource::class;
 
+    public function mount(): void
+    {
+        $setting = \App\Models\SystemSetting::first();
+        if ($setting) {
+            redirect()->to(SystemSettingResource::getUrl('edit', ['record' => $setting]));
+        } else {
+            redirect()->to(SystemSettingResource::getUrl('create'));
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [

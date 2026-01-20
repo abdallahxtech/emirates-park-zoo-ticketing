@@ -27,12 +27,20 @@ class LeadResource extends Resource
                         Forms\Components\TextInput::make('name'),
                         Forms\Components\TextInput::make('email')->email(),
                         Forms\Components\TextInput::make('phone'),
+                        Forms\Components\Select::make('type')
+                            ->options([
+                                'abandoned_cart' => 'Abandoned Cart',
+                                'inquiry' => 'General Inquiry',
+                                'offline' => 'Offline Walk-in',
+                            ])->default('inquiry'),
+                        Forms\Components\TextInput::make('potential_value')->numeric()->prefix('AED'),
+                        Forms\Components\Textarea::make('notes')->columnSpanFull(),
                         Forms\Components\Select::make('status')
                             ->options([
                                 'new' => 'New',
                                 'contacted' => 'Contacted',
                                 'converted' => 'Converted',
-                                'abandoned' => 'Abandoned',
+                                'lost' => 'Lost',
                             ])
                             ->required(),
                     ])->columns(2),
@@ -80,9 +88,9 @@ class LeadResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('convert')
-                     ->action(fn (Lead $record) => $record->update(['status' => 'converted']))
-                     ->visible(fn (Lead $record) => $record->status !== 'converted')
-                     ->icon('heroicon-o-check'),
+                    ->action(fn(Lead $record) => $record->update(['status' => 'converted']))
+                    ->visible(fn(Lead $record) => $record->status !== 'converted')
+                    ->icon('heroicon-o-check'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

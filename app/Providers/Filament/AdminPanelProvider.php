@@ -37,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Emirates Park Zoo')
             ->brandLogoHeight('3rem')
             ->favicon(asset('favicon.ico'))
+            ->css(asset('css/admin.css'))
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
