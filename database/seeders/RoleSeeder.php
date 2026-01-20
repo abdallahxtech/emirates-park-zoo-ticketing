@@ -44,6 +44,7 @@ class RoleSeeder extends Seeder
                 ['slug' => $data['slug']], 
                 [
                     'name' => $data['name'],
+                    'display_name' => $data['name'],
                     'permissions' => $data['permissions'],
                     'description' => $data['name'] . ' Role'
                 ]
