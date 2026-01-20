@@ -25,57 +25,105 @@ class BookingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Booking Information')
+                Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\TextInput::make('reference')
-                            ->disabled()
-                            ->label('Reference'),
-                        Forms\Components\Select::make('state')
-                            ->options(collect(BookingState::cases())->mapWithKeys(
-                                fn($state) => [$state->value => $state->label()]
-                            ))
-                            ->disabled()
-                            ->label('State'),
-                        Forms\Components\DateTimePicker::make('state_changed_at')
-                            ->disabled(),
-                    ])->columns(3),
+                        Forms\Components\Section::make('Booking Information')
+                            ->schema([
+                                Forms\Components\TextInput::make('reference')
+                                    ->disabled()
+                                    ->label('Reference'),
+                                Forms\Components\Select::make('state')
+                                    ->options(collect(BookingState::cases())->mapWithKeys(
+                                        fn($state) => [$state->value => $state->label()]
+                                    ))
+                                    ->disabled()
+                                    ->label('State'),
+                                Forms\Components\DateTimePicker::make('state_changed_at')
+                                    ->disabled(),
+                            ])->columns(3),
 
-                Forms\Components\Section::make('Customer')
-                    ->schema([
-                        Forms\Components\Select::make('customer_id')
-                            ->relationship('customer', 'email')
-                            ->searchable()
-                            ->required(),
-                    ]),
+                        Forms\Components\Section::make('Customer')
+                            ->schema([
+                                Forms\Components\Select::make('customer_id')
+                                    ->relationship('customer', 'email')
+                                    ->searchable()
+                                    ->required(),
+                            ]),
 
-                Forms\Components\Section::make('Pricing')
-                    ->schema([
-                        Forms\Components\TextInput::make('subtotal')
-                            ->numeric()
-                            ->prefix('AED')
-                            ->disabled(),
-                        Forms\Components\TextInput::make('tax')
-                            ->numeric()
-                            ->prefix('AED')
-                            ->disabled(),
-                        Forms\Components\TextInput::make('total')
-                            ->numeric()
-                            ->prefix('AED')
-                            ->disabled(),
-                    ])->columns(3),
+                        Forms\Components\Section::make('Payment & Pricing')
+                            ->schema([
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->numeric()
+                                    ->prefix('AED')
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('total')
+                                    ->numeric()
+                                    ->prefix('AED')
+                                    ->disabled(),
+                            ])->columns(2),
+                    ])->columnSpan(2),
 
-                Forms\Components\Section::make('Visit Details')
+                Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\DatePicker::make('visit_date'),
-                        Forms\Components\TimePicker::make('visit_time'),
-                    ])->columns(2),
+                        Forms\Components\Section::make('Visit Details')
+                            ->schema([
+                                Forms\Components\DatePicker::make('visit_date'),
+                                Forms\Components\TimePicker::make('visit_time'),
+                            ]),
+                        Forms\Components\Section::make('Notes')
+                            ->schema([
+                                Forms\Components\Textarea::make('notes')->rows(3),
+                            ]),
+                    ])->columnSpan(1),
 
-                Forms\Components\Section::make('Notes')
+                Forms\Components\Section::make('Booking Items')
                     ->schema([
-                        Forms\Components\Textarea::make('notes')  
-                            ->rows(3),
-                    ]),
-            ]);
+                        Forms\Components\Repeater::make('items')
+                            ->relationship()
+                            ->schema([
+                                Forms\Components\Select::make('product_id')
+                                    ->relationship('product', 'name')
+                                    ->required()
+                                    ->reactive()
+                                    ->afterStateUpdated(fn($state, Forms\Set $set) => $set('unit_price', \App\Models\Product::find($state)?->price ?? 0)),
+
+                                Forms\Components\TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required()
+                                    ->reactive()
+                                    ->afterStateUpdated(fn($state, Forms\Get $get, Forms\Set $set) => $set('subtotal', $state * $get('unit_price'))),
+
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->numeric()
+                                    ->readOnly(),
+
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->numeric()
+                                    ->readOnly(),
+
+                                // VIP Fields
+                                Forms\Components\Select::make('food_selection')
+                                    ->options([
+                                        'International' => 'International',
+                                        'Arabic' => 'Arabic',
+                                        'Vegetarian' => 'Vegetarian',
+                                        'Kids Menu' => 'Kids Menu',
+                                    ])
+                                    // Show if the selected product is VIP (requires DB query or preloaded type)
+                                    // For simplicity in this edit, we show it always or based on product name heuristics if possible,
+                                    // but reactive state is best.
+                                    ->visible(fn(Forms\Get $get) => \App\Models\Product::find($get('product_id'))?->type === 'vip'),
+
+                                Forms\Components\Textarea::make('dietary_notes')
+                                    ->rows(1)
+                                    ->placeholder('Allergies, details...'),
+                            ])
+                            ->columns(4)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
+            ])->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -85,37 +133,37 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('reference')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('customer.full_name')
                     ->searchable(['first_name', 'last_name'])
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('customer.email')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\TextColumn::make('state')
                     ->badge()
-                    ->color(fn (BookingState $state): string => $state->color())
-                    ->formatStateUsing(fn (BookingState $state): string => $state->label()),
-                
+                    ->color(fn(BookingState $state): string => $state->color())
+                    ->formatStateUsing(fn(BookingState $state): string => $state->label()),
+
                 Tables\Columns\TextColumn::make('total')
                     ->money('AED')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('visit_date')
                     ->date()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('total_quantity')
                     ->label('Tickets')
                     ->alignCenter(),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\IconColumn::make('is_hold_expired')
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -126,7 +174,7 @@ class BookingResource extends Resource
                         fn($state) => [$state->value => $state->label()]
                     ))
                     ->multiple(),
-                
+
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('created_from'),
@@ -134,10 +182,10 @@ class BookingResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['created_from'], fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
-                            ->when($data['created_until'], fn ($q, $date) => $q->whereDate('created_at', '<=', $date));
+                            ->when($data['created_from'], fn($q, $date) => $q->whereDate('created_at', '>=', $date))
+                            ->when($data['created_until'], fn($q, $date) => $q->whereDate('created_at', '<=', $date));
                     }),
-                
+
                 Tables\Filters\Filter::make('visit_date')
                     ->form([
                         Forms\Components\DatePicker::make('visit_from'),
@@ -145,8 +193,8 @@ class BookingResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['visit_from'], fn ($q, $date) => $q->whereDate('visit_date', '>=', $date))
-                            ->when($data['visit_until'], fn ($q, $date) => $q->whereDate('visit_date', '<=', $date));
+                            ->when($data['visit_from'], fn($q, $date) => $q->whereDate('visit_date', '>=', $date))
+                            ->when($data['visit_until'], fn($q, $date) => $q->whereDate('visit_date', '<=', $date));
                     }),
             ])
             ->actions([
@@ -169,7 +217,7 @@ class BookingResource extends Resource
                             \Filament\Notifications\Notification::make()->title('No payment found to refund')->warning()->send();
                         }
                     })
-                    ->visible(fn (Booking $record) => in_array($record->state, [BookingState::CONFIRMED, BookingState::ISSUED])),
+                    ->visible(fn(Booking $record) => in_array($record->state, [BookingState::CONFIRMED, BookingState::ISSUED])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -188,8 +236,8 @@ class BookingResource extends Resource
                         Infolists\Components\TextEntry::make('reference'),
                         Infolists\Components\TextEntry::make('state')
                             ->badge()
-                            ->color(fn (BookingState $state): string => $state->color())
-                            ->formatStateUsing(fn (BookingState $state): string => $state->label()),
+                            ->color(fn(BookingState $state): string => $state->color())
+                            ->formatStateUsing(fn(BookingState $state): string => $state->label()),
                         Infolists\Components\TextEntry::make('state_changed_at')
                             ->dateTime(),
                         Infolists\Components\TextEntry::make('created_at')
