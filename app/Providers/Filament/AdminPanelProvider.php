@@ -28,10 +28,24 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Green, // Zoo branding
+                'primary' => '#00A651', // Emirates Park Zoo Green
                 'gray' => Color::Slate,
+                'danger' => Color::Red,
+                'warning' => Color::Amber,
+                'success' => Color::Emerald,
             ])
-            ->brandName('Emirates Park Zoo')
+            ->brandName('Emirates Park Zoo & Resort')
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                'Bookings',
+                'VIP Operations',
+                'Content CMS',
+                'Customers',
+                'Staff & Access',
+                'Settings',
+                'System',
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
