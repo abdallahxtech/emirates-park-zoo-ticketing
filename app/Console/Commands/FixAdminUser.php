@@ -48,11 +48,11 @@ class FixAdminUser extends Command
         $user->status = 'active';
         
         // Find Role
-        $role = Role::where('slug', 'super-admin')->first();
+        $role = Role::where('slug', 'super_admin')->first();
         if (!$role) {
              $this->error("Super Admin role not found! Running seeder...");
              $this->call('db:seed', ['--class' => 'RoleSeeder']);
-             $role = Role::where('slug', 'super-admin')->firstOrFail();
+             $role = Role::where('slug', 'super_admin')->firstOrFail();
         }
 
         // Assign Role
