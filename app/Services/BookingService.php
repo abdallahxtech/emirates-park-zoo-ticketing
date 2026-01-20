@@ -43,7 +43,7 @@ class BookingService
             $subtotal = 0;
             foreach ($items as $itemData) {
                 $ticket = Ticket::findOrFail($itemData['ticket_id']);
-                
+
                 $bookingItem = BookingItem::create([
                     'booking_id' => $booking->id,
                     'ticket_id' => $ticket->id,
@@ -84,7 +84,7 @@ class BookingService
             // Use Atomic Lock to prevent race conditions during high load
             // Lock waits up to 10 seconds, and holds for 10 seconds
             return \Illuminate\Support\Facades\Cache::lock('inventory_reservation', 10)->block(10, function () use ($booking, $holdDurationMinutes) {
-                
+
                 // 1. Re-Check inventory availability (inside lock)
                 foreach ($booking->items as $item) {
                     if (!$this->inventoryService->checkAvailability(
@@ -232,6 +232,9 @@ class BookingService
             BookingState::TICKETS_ISSUED->value,
             BookingState::CONFIRMED->value
         );
+
+        // Notify Staff (Operations/Kitchen)
+        \App\Jobs\NotifyOperationsJob::dispatch($booking);
 
         return $booking->fresh();
     }
