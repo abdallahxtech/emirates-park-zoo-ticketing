@@ -1,0 +1,38 @@
+/* Custom Admin Styles */
+.fi-logo {
+    height: 3rem !important;
+}
+
+/* Login Page Styling */
+.fi-login-page {
+    background-image: url('https://images.unsplash.com/photo-1534567191629-8d8d916eb151?q=80&w=2574&auto=format&fit=crop'); /* Zoo placeholder */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.fi-login-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4); /* Overlay */
+    z-index: 0;
+}
+
+.fi-login-page section {
+    position: relative;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Sidebar Branding */
+.fi-sidebar-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.fi-sidebar-nav-groups {
+    padding-top: 1rem;
+}

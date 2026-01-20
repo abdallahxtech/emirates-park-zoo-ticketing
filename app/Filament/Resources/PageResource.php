@@ -102,7 +102,7 @@ class PageResource extends Resource
                 Tables\Columns\ImageColumn::make('hero_image'),
                 Tables\Columns\TextColumn::make('title')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('slug'),
-                Tables\Columns\IconColumn::make('is_published')->boolean(),
+                Tables\Columns\ToggleColumn::make('is_published'),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime(),
             ])
             ->filters([
