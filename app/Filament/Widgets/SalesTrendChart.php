@@ -21,19 +21,19 @@ class SalesTrendChart extends ChartWidget
                 end: now(),
             )
             ->perDay()
-            ->sum('total_amount');
+            ->sum('total');
 
         return [
             'datasets' => [
                 [
                     'label' => 'Revenue (AED)',
-                    'data' => $data->map(fn (TrendValue $value) => $value->aggregate),
+                    'data' => $data->map(fn(TrendValue $value) => $value->aggregate),
                     'borderColor' => '#00A651',
                     'fill' => true,
                     'backgroundColor' => 'rgba(0, 166, 81, 0.1)',
                 ],
             ],
-            'labels' => $data->map(fn (TrendValue $value) => $value->date),
+            'labels' => $data->map(fn(TrendValue $value) => $value->date),
         ];
     }
 
