@@ -15,11 +15,25 @@ return new class extends Migration
             }
             
             // Add proper staff management fields
-            $table->foreignId('role_id')->after('password')->nullable()->constrained('roles')->nullOnDelete();
-            $table->foreignId('invited_by')->after('role_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('invited_at')->after('invited_by')->nullable();
-            $table->timestamp('last_login_at')->after('invited_at')->nullable();
-            $table->enum('status', ['active', 'invited', 'suspended'])->after('last_login_at')->default('active');
+            if (!Schema::hasColumn('users', 'role_id')) {
+                $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            }
+            
+            if (!Schema::hasColumn('users', 'invited_by')) {
+                $table->foreignId('invited_by')->nullable()->constrained('users')->nullOnDelete();
+            }
+
+            if (!Schema::hasColumn('users', 'invited_at')) {
+                $table->timestamp('invited_at')->nullable();
+            }
+
+            if (!Schema::hasColumn('users', 'last_login_at')) {
+                $table->timestamp('last_login_at')->nullable();
+            }
+            
+            if (!Schema::hasColumn('users', 'status')) {
+                 $table->enum('status', ['active', 'invited', 'suspended'])->default('active');
+            }
         });
     }
 
