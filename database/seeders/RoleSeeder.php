@@ -14,7 +14,7 @@ class RoleSeeder extends Seeder
         $roles = [
             'super_admin' => [
                 'name' => 'Super Admin',
-                'slug' => 'super-admin', // Matches hasPermission check
+                'slug' => 'super_admin', // Matches hasRole check
                 'permissions' => ['*'],
             ],
             'operations' => [
