@@ -30,7 +30,7 @@ COPY . /var/www
 
 # Install dependencies
 RUN echo "Cache Bust 1" 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer update --no-dev --optimize-autoloader
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \
