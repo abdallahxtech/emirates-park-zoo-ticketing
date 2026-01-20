@@ -1,28 +1,27 @@
 <?php
 
-// Bypass Laravel and go straight to Composer
+// Turn on all errors
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require __DIR__ . '/../vendor/autoload.php';
 
-echo "<h1>Vendor Debugger</h1>";
+echo "<h1>Debug Info</h1>";
 
-// 1. Check Class Existence
-$class = 'Filament\PanelProvider';
-if (class_exists($class)) {
-    echo "<p style='color:green'>✅ Class <b>$class</b> exists!</p>";
+if (class_exists('Filament\PanelProvider')) {
+    echo "<p style='color:green'>✅ Class Filament\PanelProvider exists!</p>";
 } else {
-    echo "<p style='color:red'>❌ Class <b>$class</b> NOT FOUND.</p>";
+    echo "<p style='color:red'>❌ Class Filament\PanelProvider NOT found!</p>";
 }
 
-// 2. Check File System
-$filamentPath = __DIR__ . '/../vendor/filament/filament';
-if (is_dir($filamentPath)) {
-    echo "<p>📂 vendor/filament/filament directory exists.</p>";
-} else {
-    echo "<p>❌ vendor/filament/filament directory MISSING.</p>";
-}
+echo "<h2>Recent Logs</h2>";
+$logFile = __DIR__ . '/../storage/logs/laravel.log';
 
-// 3. Dump Composer Packages
-echo "<hr><h3>Installed Packages:</h3><pre>";
-$packages = \Composer\InstalledVersions::getAllRawData();
-print_r($packages[0]['versions']['filament/filament'] ?? 'Filament NOT detected in InstalledVersions');
-echo "</pre>";
+if (file_exists($logFile)) {
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -100);
+    echo "<pre>" . htmlspecialchars(implode("", $lastLines)) . "</pre>";
+} else {
+    echo "Log file not found at: $logFile";
+}
