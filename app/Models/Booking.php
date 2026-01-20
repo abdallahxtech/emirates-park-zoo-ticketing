@@ -35,7 +35,7 @@ class Booking extends Model
         'galaxy_tickets',
         'tickets_issued_at',
         'created_by_user_id',
-        'booking_source',
+        'source',
         'metadata',
     ];
 
