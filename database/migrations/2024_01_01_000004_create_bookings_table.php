@@ -28,9 +28,7 @@ return new class extends Migration
             
             // Hold management
             $table->timestamp('hold_expires_at')->nullable();
-            $table->boolean('is_hold_expired')->virtualAs(
-                'CASE WHEN hold_expires_at IS NOT NULL AND hold_expires_at < NOW() THEN true ELSE false END'
-            );
+
             
             // Visit details
             $table->date('visit_date')->nullable();
