@@ -16,36 +16,40 @@ class Booking extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'booking_id',
-        'customer_name',
-        'customer_email',
-        'customer_phone',
+        'reference',        // Was booking_id
+        'customer_id',      // Was customer_name/email/phone
         'visit_date',
+        'visit_time',
         'notes',
         'subtotal',
         'tax',
-        'discount',
-        'total_amount',
+        'total',            // Was total_amount
         'currency',
         'state',
-        'expires_at', // Matching the migration column
-        'cancellation_reason',
-        'source',
-        'created_by',
-        'confirmed_at',
-        'cancelled_at',
+        'state_changed_at',
+        'hold_expires_at',
+        'payment_method',
+        'payment_provider',
+        'payment_reference',
+        'galaxy_booking_id',
+        'galaxy_tickets',
+        'tickets_issued_at',
+        'created_by_user_id',
+        'booking_source',
+        'metadata',
     ];
 
     protected $casts = [
         'visit_date' => 'date',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
-        'discount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'total' => 'decimal:2',
         'state' => BookingState::class,
-        'expires_at' => 'datetime',
-        'confirmed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
+        'hold_expires_at' => 'datetime',
+        'state_changed_at' => 'datetime',
+        'tickets_issued_at' => 'datetime',
+        'metadata' => 'array',
+        'galaxy_tickets' => 'array',
     ];
 
     protected static function boot()
@@ -53,21 +57,21 @@ class Booking extends Model
         parent::boot();
 
         static::creating(function ($booking) {
-            if (empty($booking->booking_id)) {
+            if (empty($booking->reference)) {
                 $prefix = SystemSetting::get('booking_id_prefix', 'ZOO');
-                $booking->booking_id = $prefix . '-' . date('Y') . '-' . strtoupper(Str::random(6));
+                $booking->reference = $prefix . '-' . date('Y') . '-' . strtoupper(Str::random(6));
             }
         });
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(BookingItem::class);
-    }
-
-    public function tickets(): HasMany
-    {
-        return $this->hasMany(Ticket::class);
     }
 
     public function payments(): HasMany
@@ -77,7 +81,7 @@ class Booking extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     public function activityLogs(): MorphMany
@@ -85,29 +89,10 @@ class Booking extends Model
         return $this->morphMany(ActivityLog::class, 'subject');
     }
 
-    public function recalculateTotals(): void
+    /**
+     * Helper to get inventory holds related to this booking
+     */
+    public function inventoryHolds(): HasMany
     {
-        $subtotal = $this->items->sum('subtotal');
-        $taxRate = (float) SystemSetting::get('tax_rate', 0);
-        $tax = $subtotal * ($taxRate / 100);
-        $total = $subtotal + $tax - $this->discount;
-
-        $this->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total_amount' => max(0, $total),
-        ]);
+        return $this->hasMany(InventoryHold::class);
     }
-
-    public function markAsConfirmed(): void
-    {
-        if ($this->state !== BookingState::CONFIRMED) {
-            $this->update([
-                'state' => BookingState::CONFIRMED,
-                'confirmed_at' => now(),
-            ]);
-
-            ActivityLog::logActivity($this, 'confirmed', null, null, null, 'Booking confirmed automatically');
-        }
-    }
-}
